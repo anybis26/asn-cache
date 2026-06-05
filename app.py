@@ -8,7 +8,7 @@ import subprocess
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 
-DB = "asn-cache.db"
+DB = os.getenv("DB", "/data/asn-cache.db")
 TTL = 86400  # 24 часа
 
 app = FastAPI(title="ASN Cache")
