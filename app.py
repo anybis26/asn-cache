@@ -4,6 +4,7 @@ import sqlite3
 import time
 import requests
 import subprocess
+import os
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
