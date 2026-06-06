@@ -1,6 +1,6 @@
 # ASN Cache
 
-🇺🇸 English | [🇷🇺 Русский](README.ru.md)
+🇺🇸 English | [🇷🇺 Русский](docs/README.ru.md)
 
 
 Lightweight self-hosted ASN prefix cache and aggregation service.
@@ -225,7 +225,7 @@ With this change, Bird4Static will first query ASN Cache. If the service is unav
 
 | Document | Description |
 |-----------|-------------|
-| [Nginx Reverse Proxy Configuration](nginx.md) | Publishing ASN Cache via HTTP/HTTPS |
+| [Nginx Reverse Proxy Configuration](docs/nginx.md) | Publishing ASN Cache via HTTP/HTTPS |
 
 ### Using HTTPS
 
