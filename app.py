@@ -20,12 +20,14 @@ app = FastAPI(title="ASN Cache")
 # ----------------------------------------------------
 
 def db():
+    """Create SQLite connection."""
     conn = sqlite3.connect(DB)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
+    """Initialize SQLite schema."""
     conn = db()
 
     conn.execute("""
@@ -74,6 +76,7 @@ def fetch_ripe(asn):
 
 
 def fetch_routeviews(asn):
+    """Fetch IPv4 prefixes from RouteViews API."""
     asn_num = asn.replace("AS", "")
 
     url = f"https://api.routeviews.org/guest/asn/{asn_num}?af=4"
@@ -89,13 +92,14 @@ def fetch_routeviews(asn):
         if isinstance(data, list):
             return [x for x in data if "." in x]
 
-    except Exception:
+    except (requests.RequestException, ValueError):
         pass
 
     return []
 
 
 def fetch_radb(asn):
+    """Fetch prefixes from RADB whois database."""
     try:
         output = subprocess.check_output(
             [
@@ -117,7 +121,7 @@ def fetch_radb(asn):
 
         return result
 
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         return []
 
 
@@ -126,6 +130,7 @@ def fetch_radb(asn):
 # ----------------------------------------------------
 
 def cache_valid(asn):
+    """Check if ASN cache is still valid based on TTL."""
     conn = db()
 
     row = conn.execute(
@@ -151,6 +156,7 @@ def cache_valid(asn):
 
 
 def get_cached(asn):
+    """Return cached prefixes for ASN."""
     conn = db()
 
     rows = conn.execute(
@@ -169,6 +175,7 @@ def get_cached(asn):
 
 
 def save_prefixes(asn, prefixes):
+    """Store prefixes into SQLite cache."""
     conn = db()
 
     conn.execute(
@@ -193,21 +200,22 @@ def save_prefixes(asn, prefixes):
 
 
 def refresh_asn(asn):
+    """Refresh ASN prefixes from all external sources."""
     prefixes = set()
 
     try:
         prefixes.update(fetch_ripe(asn))
-    except Exception:
+    except requests.RequestException:
         pass
 
     try:
         prefixes.update(fetch_routeviews(asn))
-    except Exception:
+    except requests.RequestException:
         pass
 
     try:
         prefixes.update(fetch_radb(asn))
-    except Exception:
+    except requests.RequestException:
         pass
 
     prefixes.discard("0.0.0.0/0")
@@ -223,6 +231,7 @@ def refresh_asn(asn):
 
 @app.get("/data/announced-prefixes/data.json")
 def announced_prefixes(resource: str):
+    """Return announced prefixes for given ASN."""
 
     resource = resource.upper()
 
@@ -253,6 +262,7 @@ def announced_prefixes(resource: str):
 
 @app.get("/health")
 def health():
+    """Health check endpoint."""
     return {"status": "ok"}
 
 
