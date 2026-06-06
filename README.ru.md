@@ -171,7 +171,13 @@ iptables -A INPUT -p tcp --dport 8080 -j DROP
 
 ## Интеграция с Bird4Static
 
-Для использования ASN Cache в Bird4Static необходимо добавить функцию получения префиксов из собственного сервиса.
+Проект изначально создавался для использования совместно с Bird4Static.
+
+Оригинальная реализация:
+
+- [Bird4Static func.sh](https://github.com/DennoN-RUS/Bird4Static/blob/master/Install/common/func.sh)
+
+Ниже приведён пример подключения ASN Cache в качестве собственного источника ASN-префиксов.
 
 ### Добавьте новую функцию в `func.sh`
 

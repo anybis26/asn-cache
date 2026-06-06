@@ -172,7 +172,14 @@ The service is suitable for low-resource VPS instances.
 
 ## Bird4Static Integration
 
-To use ASN Cache with Bird4Static, add a custom prefix source that queries your ASN Cache instance before falling back to public services.
+This project was originally designed to work with Bird4Static.
+
+Reference implementation:
+
+- [Bird4Static func.sh](https://github.com/DennoN-RUS/Bird4Static/blob/master/Install/common/func.sh)
+
+See the examples below for integrating ASN Cache as a custom ASN prefix source.
+
 
 ### Add a new function to `func.sh`
 
