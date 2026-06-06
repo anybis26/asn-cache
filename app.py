@@ -1,10 +1,11 @@
+"""ASN Cache service (RIPEstat-compatible prefix aggregation API)."""
 #!/usr/bin/env python3
+import os
+import subprocess
 
 import sqlite3
 import time
 import requests
-import subprocess
-import os
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
@@ -50,6 +51,7 @@ def init_db():
 # ----------------------------------------------------
 
 def fetch_ripe(asn):
+    """Fetch IPv4 prefixes from RIPEstat for given ASN."""
     url = (
         "https://stat.ripe.net/"
         f"data/announced-prefixes/data.json?resource={asn}"
