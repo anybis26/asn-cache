@@ -1,5 +1,8 @@
 # ASN Cache
 
+🇺🇸 English | [🇷🇺 Русский](README.ru.md)
+
+
 Lightweight self-hosted ASN prefix cache and aggregation service.
 
 Supported data sources:
@@ -166,6 +169,64 @@ The service is suitable for low-resource VPS instances.
 * Multiple routers use it as an ASN → Prefix source.
 * The service reduces load on RIPEstat and other public services.
 * Cached data remains available even if one of the upstream providers becomes temporarily unavailable.
+
+## Bird4Static Integration
+
+To use ASN Cache with Bird4Static, add a custom prefix source that queries your ASN Cache instance before falling back to public services.
+
+### Add a new function to `func.sh`
+
+```bash
+#GET PREFIXES FROM PERSONAL FUNCTION
+get_prefixes_personal_func() {
+  local cur_as="$1"
+  local result
+
+  result="$(
+    retry_cmd_func "personal" "$cur_as" \
+      curl -fsSk "http://YOUR_DOMAIN_OR_IP/data/announced-prefixes/data.json?resource=$cur_as" |
+      jq -r '.data.prefixes[]? | select(.prefix? and (.prefix | contains("."))) | .prefix'
+  )"
+
+  log_source_result_func "personal" "$cur_as" "$result"
+  printf '%s\n' "$result"
+}
+```
+
+### Modify the `get_as_func()` function
+
+Locate the following section:
+
+```bash
+result="$(get_prefixes_ripe_func "$cur_as")"
+[[ -z "$result" ]] && result="$(get_prefixes_routeviews_func "$cur_as")"
+[[ -z "$result" ]] && result="$(get_prefixes_radb_func "$cur_as")"
+```
+
+Replace it with:
+
+```bash
+result="$(get_prefixes_personal_func "$cur_as")"
+[[ -z "$result" ]] && result="$(get_prefixes_ripe_func "$cur_as")"
+[[ -z "$result" ]] && result="$(get_prefixes_routeviews_func "$cur_as")"
+[[ -z "$result" ]] && result="$(get_prefixes_radb_func "$cur_as")"
+```
+
+With this change, Bird4Static will first query ASN Cache. If the service is unavailable or returns no data, the script will automatically fall back to RIPEstat, RouteViews, and RADB.
+
+### Documentation
+
+| Document | Description |
+|-----------|-------------|
+| [Nginx Reverse Proxy Configuration](nginx.md) | Publishing ASN Cache via HTTP/HTTPS |
+
+### Using HTTPS
+
+If ASN Cache is published through Nginx with TLS enabled:
+
+```bash
+curl -fsSk "https://asn-cache.example.com/data/announced-prefixes/data.json?resource=$cur_as"
+```
 
 ## Roadmap
 

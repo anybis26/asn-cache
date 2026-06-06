@@ -1,5 +1,7 @@
 # ASN Cache
 
+[🇺🇸 English](README.md) | 🇷🇺 Русский
+
 Лёгкий self-hosted сервис для кэширования и агрегации информации о префиксах автономных систем (ASN).
 
 Поддерживаемые источники:
@@ -166,6 +168,65 @@ iptables -A INPUT -p tcp --dport 8080 -j DROP
 * Несколько роутеров используют его как источник ASN → Prefixes.
 * Сервис снижает нагрузку на RIPEstat и другие публичные сервисы.
 * Кэшированные данные остаются доступными даже при временной недоступности одного из внешних источников.
+
+## Интеграция с Bird4Static
+
+Для использования ASN Cache в Bird4Static необходимо добавить функцию получения префиксов из собственного сервиса.
+
+### Добавьте новую функцию в `func.sh`
+
+```bash
+#GET PREFIXES FROM PERSONAL FUNCTION
+get_prefixes_personal_func() {
+  local cur_as="$1"
+  local result
+
+  result="$(
+    retry_cmd_func "personal" "$cur_as" \
+      curl -fsSk "http://YOUR_DOMAIN_OR_IP/data/announced-prefixes/data.json?resource=$cur_as" |
+      jq -r '.data.prefixes[]? | select(.prefix? and (.prefix | contains("."))) | .prefix'
+  )"
+
+  log_source_result_func "personal" "$cur_as" "$result"
+  printf '%s\n' "$result"
+}
+```
+
+### Измените функцию `get_as_func()`
+
+Найдите следующий блок:
+
+```bash
+result="$(get_prefixes_ripe_func "$cur_as")"
+[[ -z "$result" ]] && result="$(get_prefixes_routeviews_func "$cur_as")"
+[[ -z "$result" ]] && result="$(get_prefixes_radb_func "$cur_as")"
+```
+
+и замените его на:
+
+```bash
+result="$(get_prefixes_personal_func "$cur_as")"
+[[ -z "$result" ]] && result="$(get_prefixes_ripe_func "$cur_as")"
+[[ -z "$result" ]] && result="$(get_prefixes_routeviews_func "$cur_as")"
+[[ -z "$result" ]] && result="$(get_prefixes_radb_func "$cur_as")"
+```
+
+Теперь Bird4Static сначала будет обращаться к ASN Cache, а при недоступности сервиса автоматически переключится на RIPEstat, RouteViews и RADB.
+
+### Документация
+
+| Документ | Описание |
+|-----------|-------------|
+| [Настройка Nginx Reverse Proxy](nginx.ru.md) | Публикация ASN Cache через HTTP/HTTPS |
+
+### Использование через HTTPS
+
+Если сервис опубликован через Nginx и TLS:
+
+```bash
+curl -fsSk "https://asn-cache.example.com/data/announced-prefixes/data.json?resource=$cur_as"
+```
+
 
 ## Дорожная карта
 
