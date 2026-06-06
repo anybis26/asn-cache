@@ -223,7 +223,7 @@ result="$(get_prefixes_personal_func "$cur_as")"
 
 | Документ | Описание |
 |-----------|-------------|
-| [Настройка Nginx Reverse Proxy](docs/nginx.ru.md) | Публикация ASN Cache через HTTP/HTTPS |
+| [Настройка Nginx Reverse Proxy](nginx.ru.md) | Публикация ASN Cache через HTTP/HTTPS |
 
 ### Использование через HTTPS
 
